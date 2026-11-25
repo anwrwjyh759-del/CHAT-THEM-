@@ -1,0 +1,1655 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>CHAT✨THEM</title>
+  <style>
+    :root {
+      --bg-app: #0b141a;
+      --bg-surface: #111b21;
+      --bg-card: #182229;
+      --bg-input: #202c33;
+      --accent: #00a884;
+      --accent-2: #02c39a;
+      --msg-out: #005c4b;
+      --msg-in: #202c33;
+      --text-main: #e9edef;
+      --text-muted: #8696a0;
+      --border: rgba(255, 255, 255, 0.08);
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --font-scale: 1;
+      --chat-bg-image: none;
+    }
+
+    body.light-mode {
+      --bg-app: #efeae2;
+      --bg-surface: #f0f2f5;
+      --bg-card: #ffffff;
+      --bg-input: #ffffff;
+      --accent: #008069;
+      --accent-2: #009e82;
+      --msg-out: #d9fdd3;
+      --msg-in: #ffffff;
+      --text-main: #111b21;
+      --text-muted: #54656f;
+      --border: rgba(17, 27, 33, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Tahoma, Arial, sans-serif;
+    }
+
+    body {
+      background: #050a0d;
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      font-size: calc(14px * var(--font-scale));
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 480px;
+      height: 100dvh;
+      background: var(--bg-app);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 45px rgba(0, 0, 0, 0.7);
+    }
+
+    /* شاشة الدخول / إنشاء الحساب */
+    .auth-overlay {
+      position: absolute;
+      inset: 0;
+      background: var(--bg-surface);
+      z-index: 60;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .auth-overlay.hidden {
+      display: none;
+    }
+
+    .auth-mode-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      background: var(--bg-input);
+      padding: 4px;
+      border-radius: 12px;
+      margin-bottom: 14px;
+    }
+
+    .mode-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      padding: 9px;
+      border-radius: 9px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .mode-btn.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .auth-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .field {
+      margin-bottom: 11px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+    }
+
+    .input, .select, .textarea {
+      width: 100%;
+      background: var(--bg-input);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 10px 12px;
+      font-size: inherit;
+      outline: none;
+    }
+
+    .textarea {
+      min-height: 70px;
+      resize: vertical;
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .btn-sm {
+      background: var(--bg-input);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .avatar-preview {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--accent);
+      background: var(--bg-input);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 20px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .avatar-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* الهيدر العلوي مع الكرة الأرضية للباب الخلفي */
+    .top-bar {
+      background: var(--bg-surface);
+      padding: 11px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      z-index: 20;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .globe-trigger {
+      font-size: 22px;
+      cursor: pointer;
+      user-select: none;
+      padding: 4px;
+      border-radius: 50%;
+    }
+
+    .brand-name {
+      font-weight: 800;
+      font-size: 17px;
+      line-height: 1.2;
+    }
+
+    .brand-status {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .content-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 76px;
+    }
+
+    .page {
+      display: none;
+      padding: 12px;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 13px;
+      margin-bottom: 11px;
+    }
+
+    .card-title {
+      font-weight: 700;
+      font-size: 15px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .list-row {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      padding: 11px;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      margin-bottom: 9px;
+      cursor: pointer;
+    }
+
+    .row-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .row-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .row-title {
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .row-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .badge {
+      background: rgba(0, 168, 132, 0.16);
+      color: var(--accent-2);
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    /* تبويب الأحداث والمسابقات والليدر بورد */
+    .quiz-option {
+      display: block;
+      width: 100%;
+      text-align: right;
+      background: var(--bg-input);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 11px;
+      margin-top: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .quiz-option.selected {
+      border-color: var(--accent);
+      background: rgba(0, 168, 132, 0.18);
+    }
+
+    .leader-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    .leader-item:last-child {
+      border-bottom: none;
+    }
+
+    /* شاشة الشات */
+    .chat-drawer {
+      position: absolute;
+      inset: 0;
+      background: var(--bg-app);
+      background-image: var(--chat-bg-image);
+      background-size: cover;
+      background-position: center;
+      z-index: 40;
+      display: none;
+      flex-direction: column;
+    }
+
+    .chat-drawer.open {
+      display: flex;
+    }
+
+    .chat-head {
+      background: var(--bg-surface);
+      padding: 11px 13px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .msgs-box {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .bubble {
+      max-width: 82%;
+      padding: 9px 12px;
+      border-radius: 13px;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+    .bubble.out {
+      align-self: flex-start;
+      background: var(--msg-out);
+    }
+
+    .bubble.in {
+      align-self: flex-end;
+      background: var(--msg-in);
+      border: 1px solid var(--border);
+    }
+
+    .bubble a {
+      color: #38bdf8;
+      text-decoration: underline;
+    }
+
+    .bubble-meta {
+      margin-top: 4px;
+      font-size: 10px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .chat-bar {
+      background: var(--bg-surface);
+      padding: 9px 11px;
+      display: flex;
+      gap: 8px;
+      border-top: 1px solid var(--border);
+    }
+
+    .chat-bar input {
+      flex: 1;
+      background: var(--bg-input);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 9px 13px;
+      font-size: inherit;
+      outline: none;
+    }
+
+    .send-circle {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* التبويبات السفلية الخمسة */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 62px;
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      z-index: 25;
+    }
+
+    .nav-item {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      cursor: pointer;
+      font-size: 10px;
+      padding: 2px;
+    }
+
+    .nav-item .ico {
+      font-size: 17px;
+      line-height: 1;
+    }
+
+    .nav-item.active {
+      color: var(--accent-2);
+      font-weight: 700;
+    }
+
+    .toast {
+      position: absolute;
+      bottom: 74px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1b2730;
+      color: #fff;
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 12px;
+      font-size: 12px;
+      z-index: 80;
+      display: none;
+      max-width: 90%;
+      text-align: center;
+    }
+
+    .toast.show {
+      display: block;
+    }
+
+    .footer-sig {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      padding: 8px 0 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- شاشة الدخول أو إنشاء الحساب -->
+    <div class="auth-overlay" id="authOverlay">
+      <div>
+        <div style="text-align: center; margin-bottom: 14px;">
+          <div style="font-size: 22px; font-weight: 800;">CHAT✨THEM</div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 3px;">
+            حساب واحد لكل مستخدم • ربط صارم بين الاسم ورقم الموبايل
+          </div>
+        </div>
+
+        <div class="auth-mode-switch">
+          <button class="mode-btn active" id="modeRegisterBtn" type="button">إنشاء حساب جديد</button>
+          <button class="mode-btn" id="modeLoginBtn" type="button">تسجيل الدخول</button>
+        </div>
+
+        <!-- وضع إنشاء حساب جديد -->
+        <div class="auth-card" id="registerFormBox">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <div class="avatar-preview" id="regAvatarPreview">صورة</div>
+            <div>
+              <button class="btn-sm" id="regPickPhotoBtn" type="button">اختيار صورة شخصية</button>
+              <input type="file" id="regPhotoFile" accept="image/*" hidden />
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">يتم ضغط الصورة تلقائيًا</div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>الاسم الكامل (يُربط برقمك ولا يتكرر)</label>
+            <input class="input" id="regNameInput" type="text" placeholder=":  " />
+          </div>
+
+          <div class="field">
+            <label>رقم الموبايل</label>
+            <input class="input" id="regPhoneInput" type="tel" placeholder=" />
+          </div>
+
+          <button class="btn-primary" id="googleRegisterBtn" type="button">تسجيل الدخول بجوجل وإنشاء الحساب</button>
+        </div>
+
+        <!-- وضع تسجيل الدخول المباشر -->
+        <div class="auth-card" id="loginFormBox" style="display: none;">
+          <div class="field">
+            <label>الاسم المسجل</label>
+            <input class="input" id="loginNameInput" type="text" placeholder="اكتب اسمك بالضبط" />
+          </div>
+          <div class="field">
+            <label>رقم الموبايل المسجل</label>
+            <input class="input" id="loginPhoneInput" type="tel" placeholder="اكتب رقم موبايلك بالضبط" />
+          </div>
+          <button class="btn-primary" id="directLoginBtn" type="button">دخول إلى الحساب</button>
+        </div>
+      </div>
+
+      <div class="footer-sig">جميع الحقوق محفوظة — أنور وجيه</div>
+    </div>
+
+    <!-- الهيدر العلوي -->
+    <header class="top-bar">
+      <div class="brand-group">
+        <span class="globe-trigger" id="globeBackdoor" title="🌐">🌐</span>
+        <div>
+          <div class="brand-name">CHAT✨THEM</div>
+          <div class="brand-status" id="headerUserMeta">غير مسجل</div>
+        </div>
+      </div>
+      <span class="badge" id="pointsBadge">0 نقطة</span>
+    </header>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="content-scroll">
+      <!-- 1. الرئيسية (الشاتات) 🏫 -->
+      <section class="page active" id="page-home">
+        <input class="input" id="homeSearch" type="text" placeholder="ابحث في محادثاتك..." style="margin-bottom: 10px;" />
+        <div id="directChatsList"></div>
+        <div class="footer-sig">جميع الحقوق محفوظة — أنور وجيه</div>
+      </section>
+
+      <!-- 2. الأحداث والتنبيهات والمسابقات والليدر بورد 🎁 -->
+      <section class="page" id="page-events">
+        <div class="card" id="adminPublisherCard" style="display: none; border-color: var(--accent);">
+          <div class="card-title">
+            <span>لوحة نشر الأحداث والمسابقات (الناشر)</span>
+            <span class="badge">مفعّل</span>
+          </div>
+
+          <div class="field">
+            <label>نوع المنشور</label>
+            <select class="select" id="postTypeSelect">
+              <option value="notification">تنبيه / إعلان حدث</option>
+              <option value="mcq">مسابقة سؤال اختيارات</option>
+              <option value="essay">مسابقة سؤال مقالي</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>عنوان الحدث أو السؤال</label>
+            <input class="input" id="postTitleInput" type="text" placeholder="اكتب العنوان أو نص السؤال..." />
+          </div>
+
+          <div id="mcqFields">
+            <div class="field">
+              <label>الاختيارات (افصل بينها بفاصلة)</label>
+              <input class="input" id="mcqOptionsInput" type="text" placeholder="اختيار 1, اختيار 2, اختيار 3" />
+            </div>
+            <div class="field">
+              <label>رقم الاختيار الصحيح (يبدأ من 1)</label>
+              <input class="input" id="mcqCorrectIndex" type="number" min="1" value="1" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label>النقاط الممنوحة للإجابة الصحيحة / المشاركة</label>
+            <input class="input" id="postPointsInput" type="number" min="1" value="10" />
+          </div>
+
+          <button class="btn-primary" id="publishEventBtn" type="button">نشر في EVENTS & NOTIFICATIONS</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🏆 الليدر بورد (Leaderboard)</div>
+          <div id="leaderboardList"></div>
+        </div>
+
+        <div id="eventsFeedList"></div>
+      </section>
+
+      <!-- 3. الإضافة وفحص جهات الاتصال -->
+      <section class="page" id="page-add">
+        <div class="card">
+          <div class="card-title">إضافة وفحص جهات الاتصال</div>
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px; line-height: 1.6;">
+            يتم فحص جهات الاتصال لمعرفة من يمتلك حسابًا على التطبيق. إذا لم يفتح سجل الهاتف تلقائيًا على جهازك، يمكنك إدخال رقم أو فحص الأرقام المحفوظة يدويًا.
+          </p>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
+            <button class="btn-primary" id="scanDeviceContactsBtn" type="button" style="flex: 1;">سكان جهات الاتصال</button>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <input class="input" id="manualContactPhone" type="tel" placeholder="أدخل رقم هاتف لفحصه أو إضافته..." />
+            <button class="btn-sm" id="checkManualContactBtn" type="button">فحص</button>
+          </div>
+        </div>
+
+        <div id="contactsScanResult"></div>
+      </section>
+
+      <!-- 4. المجموعات 😊 -->
+      <section class="page" id="page-groups">
+        <div class="card">
+          <div class="card-title">إنشاء مجموعة جديدة</div>
+          <div class="field">
+            <label>اسم المجموعة</label>
+            <input class="input" id="groupNameInput" type="text" placeholder=":    " />
+          </div>
+          <div class="field">
+            <label>نوع المجموعة</label>
+            <select class="select" id="groupPrivacyInput">
+              <option value="private">مجموعة خاصة (بإضافة جهات الاتصال)</option>
+              <option value="public">مجموعة عامة</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>اختر أعضاء من جهات اتصالك المسجلة في التطبيق</label>
+            <div id="groupEligibleMembers" style="font-size: 12px; color: var(--text-muted);"></div>
+          </div>
+          <button class="btn-primary" id="createGroupBtn" type="button">إنشاء المجموعة</button>
+        </div>
+
+        <div id="groupsList"></div>
+      </section>
+
+      <!-- 5. الإعدادات ⚙️ -->
+      <section class="page" id="page-settings">
+        <div class="card">
+          <div class="card-title">
+            <span>حسابي</span>
+            <button class="btn-sm" id="toggleEditProfileBtn" type="button">تعديل</button>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+            <div class="avatar-preview" id="settingsAvatarPreview">صورة</div>
+            <div>
+              <div style="font-weight: 700;" id="settingsNameText">—</div>
+              <div style="font-size: 12px; color: var(--text-muted);" id="settingsPhoneText">—</div>
+            </div>
+          </div>
+
+          <div id="editProfilePanel" style="display: none; margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px;">
+            <div class="field">
+              <label>تعديل الاسم</label>
+              <input class="input" id="editNameInput" type="text" />
+            </div>
+            <div class="field">
+              <label>تغيير الصورة الشخصية</label>
+              <input type="file" id="editPhotoFile" accept="image/*" />
+            </div>
+            <button class="btn-primary" id="saveProfileEditsBtn" type="button">حفظ التعديلات</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">المظهر والخط والخلفيات</div>
+
+          <div class="field">
+            <label>الثيم</label>
+            <select class="select" id="themeSelect">
+              <option value="dark">داكن (Dark)</option>
+              <option value="light">فاتح (Light)</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>حجم الخط</label>
+            <select class="select" id="fontSizeSelect">
+              <option value="0.92">صغير</option>
+              <option value="1" selected>متوسط</option>
+              <option value="1.15">كبير</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>خلفية الشات</label>
+            <select class="select" id="chatBgSelect">
+              <option value="none">افتراضي</option>
+              <option value="linear-gradient(160deg, #0d252c, #091318)">تدرج بحري داكن</option>
+              <option value="linear-gradient(160deg, #1b281e, #0d140f)">تدرج زمردي هادئ</option>
+            </select>
+            <div style="margin-top: 6px;">
+              <button class="btn-sm" id="customBgBtn" type="button">اختيار صورة كخلفية شات</button>
+              <input type="file" id="customBgFile" accept="image/*" hidden />
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">التواصل والدعم</div>
+          <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6;">
+            للتواصل المباشر والاستفسارات: <strong style="color: var(--text-main);">anwrwjyh759@gmail.com</strong>
+          </p>
+          <div style="margin-top: 10px; display: flex; gap: 8px;">
+            <button class="btn-sm" id="signOutAppBtn" type="button" style="color: var(--danger);">تسجيل الخروج</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- شاشة المحادثة (نصوص + روابط + أرقام موبايلات فقط) -->
+    <div class="chat-drawer" id="chatDrawer">
+      <div class="chat-head">
+        <button class="btn-sm" id="backFromChatBtn" type="button">رجوع</button>
+        <div>
+          <div class="row-title" id="activeChatTitle">محادثة</div>
+          <div style="font-size: 11px; color: var(--text-muted);">نصوص وروابط وأرقام موبايلات فقط</div>
+        </div>
+      </div>
+
+      <div class="msgs-box" id="chatMessagesBox"></div>
+
+      <form class="chat-bar" id="sendChatForm">
+        <input type="text" id="chatTextInput" placeholder="اكتب نصًا أو رابطًا أو رقم موبايل..." autocomplete="off" />
+        <button class="send-circle" type="submit">إرسال</button>
+      </form>
+    </div>
+
+    <div class="toast" id="toastNotice"></div>
+
+    <!-- التبويبات الخمسة المطلوبة -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-page="home" type="button">
+        <span class="ico">🏫</span>
+        <span>الرئيسية</span>
+      </button>
+      <button class="nav-item" data-page="events" type="button">
+        <span class="ico">🎁</span>
+        <span>EVENTS</span>
+      </button>
+      <button class="nav-item" data-page="add" type="button">
+        <span class="ico">➕</span>
+        <span>إضافة</span>
+      </button>
+      <button class="nav-item" data-page="groups" type="button">
+        <span class="ico">😊</span>
+        <span>المجموعات</span>
+      </button>
+      <button class="nav-item" data-page="settings" type="button">
+        <span class="ico">⚙️</span>
+        <span>الإعدادات</span>
+      </button>
+    </nav>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      set,
+      get,
+      push,
+      onValue,
+      limitToLast,
+      query
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDoOPYtApwUbXrmDt0h1fWGsaI301QRNd0",
+      authDomain: "chat-them.firebaseapp.com",
+      databaseURL: "https://chat-them-default-rtdb.firebaseio.com",
+      projectId: "chat-them",
+      storageBucket: "chat-them.firebasestorage.app",
+      messagingSenderId: "670374652349",
+      appId: "1:670374652349:web:1b9fcda8494aa9197fcad4",
+      measurementId: "G-MJQ2K3BCYB"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const STATE_KEY = "chat_them_local_state_v2";
+    const ADMIN_DEVICE_KEY = "chat_them_owner_publisher_v1";
+    const MAX_LOCAL_MSGS = 100;
+    const MEDIA_KEEP_LATEST = 2;
+
+    const defaultState = {
+      currentUser: null, // { name, phone, avatar, points }
+      theme: "dark",
+      fontScale: 1,
+      chatBg: "none",
+      contacts: [], // أرقام جهات الاتصال المفحوصة
+      chats: {
+        "welcome-team": {
+          id: "welcome-team",
+          title: "فريق CHAT✨THEM",
+          isGroup: true,
+          privacy: "public",
+          members: [],
+          messages: [
+            {
+              id: "m1",
+              sender: "النظام",
+              text: "مرحبًا بك في CHAT✨THEM! المراسلة تدعم النصوص والروابط وأرقام الهواتف فقط.",
+              time: "الآن"
+            }
+          ]
+        }
+      },
+      events: [], // محفوظة محليًا على جهاز الناشر ويمكن مزامنتها أو عرضها
+      answers: {} // { eventId: { value, awarded } }
+    };
+
+    let state = loadState();
+    let pendingRegAvatar = "";
+    let pendingEditAvatar = "";
+    let activeChatId = null;
+    let stopActiveChatSub = null;
+    let globeTapCount = 0;
+    let globeTapTimer = null;
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STATE_KEY);
+        if (!raw) return structuredClone(defaultState);
+        return { ...structuredClone(defaultState), ...JSON.parse(raw) };
+      } catch {
+        return structuredClone(defaultState);
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STATE_KEY, JSON.stringify(state));
+      } catch {
+        showToast("تنبيه: التخزين المحلي قارب على الامتلاء.");
+      }
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById("toastNotice");
+      el.textContent = msg;
+      el.classList.add("show");
+      clearTimeout(showToast._timer);
+      showToast._timer = setTimeout(() => el.classList.remove("show"), 3200);
+    }
+
+    function normalizePhone(phone) {
+      return String(phone || "").replace(/\D+/g, "");
+    }
+
+    function normalizeName(name) {
+      return String(name || "").trim().replace(/\s+/g, " ").toLowerCase();
+    }
+
+    function escapeHtml(s) {
+      return String(s ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    // تحويل النص مع إبراز الروابط وأرقام الهواتف فقط دون أي وسائط
+    function formatAllowedText(rawText) {
+      const safe = escapeHtml(rawText);
+      const urlRegex = /(https?:\/\/[^\s]+)/gi;
+      const phoneRegex = /(\+?\d[\d\s-]{6,15}\d)/g;
+
+      return safe
+        .replace(urlRegex, (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`)
+        .replace(phoneRegex, (num) => `<strong>${num}</strong>`);
+    }
+
+    // ضغط الصور تلقائيًا للصور الشخصية أو الخلفية
+    function compressAvatarImage(file, maxSize = 260, quality = 0.6) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onload = () => {
+            let { width, height } = img;
+            if (width > maxSize || height > maxSize) {
+              if (width > height) {
+                height = Math.round((height * maxSize) / width);
+                width = maxSize;
+              } else {
+                width = Math.round((width * maxSize) / height);
+                height = maxSize;
+              }
+            }
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL("image/jpeg", quality));
+          };
+          img.onerror = () => reject(new Error("تعذّر قراءة الصورة."));
+          img.src = ev.target.result;
+        };
+        reader.onerror = () => reject(new Error("خطأ في تحميل الصورة."));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function renderAvatarBox(el, avatar, fallbackText) {
+      if (avatar) {
+        el.innerHTML = `<img src="${avatar}" alt="avatar" />`;
+      } else {
+        el.textContent = (fallbackText || "ن").slice(0, 2);
+      }
+    }
+
+    // التحقق من سجل الحسابات في Firebase لمنع تكرار الاسم أو الرقم وربطهما معًا
+    async function registerAccount({ name, phone, avatar }) {
+      const cleanName = String(name || "").trim().replace(/\s+/g, " ");
+      const cleanPhone = normalizePhone(phone);
+      if (cleanName.length < 2) return { ok: false, msg: "اكتب اسمًا صحيحًا." };
+      if (cleanPhone.length < 7) return { ok: false, msg: "اكتب رقم موبايل صحيحًا." };
+
+      const nameKey = encodeURIComponent(normalizeName(cleanName));
+      const phoneKey = cleanPhone;
+
+      const nameSnap = await get(ref(db, `registry/byName/${nameKey}`));
+      if (nameSnap.exists()) {
+        return { ok: false, msg: "هذا الاسم مسجل بالفعل؛ لكل شخص حساب واحد فقط." };
+      }
+
+      const phoneSnap = await get(ref(db, `registry/byPhone/${phoneKey}`));
+      if (phoneSnap.exists()) {
+        return { ok: false, msg: "رقم الموبايل هذا مسجل بالفعل بحساب آخر." };
+      }
+
+      const userRecord = {
+        name: cleanName,
+        phone: cleanPhone,
+        avatar: avatar || "",
+        points: 0,
+        createdAt: Date.now()
+      };
+
+      await set(ref(db, `registry/byPhone/${phoneKey}`), userRecord);
+      await set(ref(db, `registry/byName/${nameKey}`), { phone: cleanPhone, name: cleanName });
+
+      return { ok: true, user: userRecord };
+    }
+
+    async function loginWithNameAndPhone({ name, phone }) {
+      const cleanName = String(name || "").trim().replace(/\s+/g, " ");
+      const cleanPhone = normalizePhone(phone);
+      if (!cleanName || !cleanPhone) {
+        return { ok: false, msg: "أدخل الاسم ورقم الموبايل معًا." };
+      }
+
+      const phoneSnap = await get(ref(db, `registry/byPhone/${cleanPhone}`));
+      if (!phoneSnap.exists()) {
+        return { ok: false, msg: "الحساب غير موجود؛ أنشئ حسابًا جديدًا أولًا." };
+      }
+
+      const record = phoneSnap.val();
+      if (normalizeName(record.name) !== normalizeName(cleanName)) {
+        return { ok: false, msg: "الاسم لا يطابق رقم الموبايل المسجل لهذا الحساب." };
+      }
+
+      return { ok: true, user: record };
+    }
+
+    // تبديل وضع التسجيل / الدخول
+    document.getElementById("modeRegisterBtn").addEventListener("click", () => {
+      document.getElementById("modeRegisterBtn").classList.add("active");
+      document.getElementById("modeLoginBtn").classList.remove("active");
+      document.getElementById("registerFormBox").style.display = "block";
+      document.getElementById("loginFormBox").style.display = "none";
+    });
+
+    document.getElementById("modeLoginBtn").addEventListener("click", () => {
+      document.getElementById("modeLoginBtn").classList.add("active");
+      document.getElementById("modeRegisterBtn").classList.remove("active");
+      document.getElementById("loginFormBox").style.display = "block";
+      document.getElementById("registerFormBox").style.display = "none";
+    });
+
+    document.getElementById("regPickPhotoBtn").addEventListener("click", () => {
+      document.getElementById("regPhotoFile").click();
+    });
+
+    document.getElementById("regPhotoFile").addEventListener("change", async (e) => {
+      const f = e.target.files?.[0];
+      if (!f) return;
+      try {
+        pendingRegAvatar = await compressAvatarImage(f);
+        renderAvatarBox(document.getElementById("regAvatarPreview"), pendingRegAvatar, "صورة");
+      } catch (err) {
+        showToast(err.message);
+      }
+    });
+
+    document.getElementById("googleRegisterBtn").addEventListener("click", async () => {
+      const name = document.getElementById("regNameInput").value;
+      const phone = document.getElementById("regPhoneInput").value;
+      const res = await registerAccount({ name, phone, avatar: pendingRegAvatar });
+      if (!res.ok) {
+        showToast(res.msg);
+        return;
+      }
+      state.currentUser = res.user;
+      saveState();
+      syncAllUI();
+      showToast("تم إنشاء الحساب وربط الاسم بالرقم بنجاح.");
+    });
+
+    document.getElementById("directLoginBtn").addEventListener("click", async () => {
+      const name = document.getElementById("loginNameInput").value;
+      const phone = document.getElementById("loginPhoneInput").value;
+      const res = await loginWithNameAndPhone({ name, phone });
+      if (!res.ok) {
+        showToast(res.msg);
+        return;
+      }
+      state.currentUser = res.user;
+      saveState();
+      syncAllUI();
+      showToast(`أهلًا بك ${res.user.name}`);
+    });
+
+    // الباب الخلفي: 10 ضغطات متتالية على 🌐 لفتح صلاحية النشر في EVENTS & NOTIFICATIONS
+    document.getElementById("globeBackdoor").addEventListener("click", () => {
+      globeTapCount += 1;
+      clearTimeout(globeTapTimer);
+      globeTapTimer = setTimeout(() => {
+        globeTapCount = 0;
+      }, 2500);
+
+      if (globeTapCount >= 10) {
+        globeTapCount = 0;
+        localStorage.setItem(ADMIN_DEVICE_KEY, "granted");
+        syncEventsPublisherUI();
+        showToast("تم فتح لوحة نشر الأحداث والمسابقات على هذا الجهاز.");
+      }
+    });
+
+    function isOwnerPublisherAllowed() {
+      return localStorage.getItem(ADMIN_DEVICE_KEY) === "granted";
+    }
+
+    function syncEventsPublisherUI() {
+      const card = document.getElementById("adminPublisherCard");
+      card.style.display = isOwnerPublisherAllowed() ? "block" : "none";
+    }
+
+    document.getElementById("postTypeSelect").addEventListener("change", (e) => {
+      document.getElementById("mcqFields").style.display =
+        e.target.value === "mcq" ? "block" : "none";
+    });
+
+    // نشر حدث أو مسابقة أو تنبيه في EVENTS & NOTIFICATIONS
+    document.getElementById("publishEventBtn").addEventListener("click", async () => {
+      if (!isOwnerPublisherAllowed()) {
+        showToast("النشر متاح للناشر فقط عبر الباب الخلفي.");
+        return;
+      }
+
+      const type = document.getElementById("postTypeSelect").value;
+      const title = document.getElementById("postTitleInput").value.trim();
+      const points = Math.max(1, Number(document.getElementById("postPointsInput").value) || 10);
+
+      if (!title) {
+        showToast("اكتب عنوان الحدث أو السؤال أولًا.");
+        return;
+      }
+
+      let options = [];
+      let correctIndex = 0;
+      if (type === "mcq") {
+        options = document
+          .getElementById("mcqOptionsInput")
+          .value.split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+        correctIndex = Math.max(0, (Number(document.getElementById("mcqCorrectIndex").value) || 1) - 1);
+        if (options.length < 2) {
+          showToast("أدخل اختيارين على الأقل مفصولين بفاصلة.");
+          return;
+        }
+      }
+
+      const eventItem = {
+        id: `ev_${Date.now()}`,
+        type,
+        title,
+        options,
+        correctIndex,
+        points,
+        createdAt: Date.now()
+      };
+
+      state.events.unshift(eventItem);
+      saveState();
+
+      // مزامنة الإشعار/الحدث لقاعدة البيانات ليتلقاه المستخدمون الآخرون
+      await set(ref(db, `events_feed/${eventItem.id}`), eventItem).catch(() => {});
+
+      document.getElementById("postTitleInput").value = "";
+      document.getElementById("mcqOptionsInput").value = "";
+      renderEventsAndLeaderboard();
+      showToast("تم نشر الحدث بنجاح!");
+    });
+
+    function renderEventsAndLeaderboard() {
+      const feedEl = document.getElementById("eventsFeedList");
+      const lbEl = document.getElementById("leaderboardList");
+
+      const myPoints = state.currentUser?.points || 0;
+      const myName = state.currentUser?.name || "أنت";
+      lbEl.innerHTML = `
+        <div class="leader-item">
+          <span>🥇 ${escapeHtml(myName)}</span>
+          <span class="badge">${myPoints} نقطة</span>
+        </div>
+      `;
+
+      if (!state.events.length) {
+        feedEl.innerHTML = `<div class="card"><p style="font-size:13px;color:var(--text-muted);">لا توجد أحداث أو مسابقات منشورة بعد.</p></div>`;
+        return;
+      }
+
+      feedEl.innerHTML = state.events
+        .map((ev) => {
+          const prevAns = state.answers[ev.id];
+          let bodyHtml = "";
+
+          if (ev.type === "mcq") {
+            bodyHtml = ev.options
+              .map((opt, idx) => {
+                const picked = prevAns?.value === idx ? "selected" : "";
+                return `<button class="quiz-option ${picked}" data-ev-mcq="${ev.id}" data-opt-idx="${idx}" type="button">${escapeHtml(opt)}</button>`;
+              })
+              .join("");
+          } else if (ev.type === "essay") {
+            const val = prevAns?.value || "";
+            bodyHtml = `
+              <textarea class="textarea" id="essay_${ev.id}" placeholder="اكتب إجابتك المقالية...">${escapeHtml(val)}</textarea>
+              <button class="btn-sm" data-ev-essay="${ev.id}" type="button" style="margin-top:6px;">إرسال الإجابة (+${ev.points} نقطة)</button>
+            `;
+          }
+
+          return `
+            <div class="card">
+              <div class="card-title">
+                <span>${escapeHtml(ev.title)}</span>
+                <span class="badge">+${ev.points} نقطة</span>
+              </div>
+              ${bodyHtml}
+              ${prevAns ? `<div style="font-size:12px;color:var(--accent-2);margin-top:6px;">تم تسجيل مشاركتك في هذا الحدث.</div>` : ""}
+            </div>
+          `;
+        })
+        .join("");
+
+      feedEl.querySelectorAll("[data-ev-mcq]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const evId = btn.dataset.evMcq;
+          const idx = Number(btn.dataset.optIdx);
+          const ev = state.events.find((x) => x.id === evId);
+          if (!ev || state.answers[evId]) return;
+
+          const isCorrect = idx === ev.correctIndex;
+          const earned = isCorrect ? ev.points : 0;
+          state.answers[evId] = { value: idx, awarded: earned };
+          if (state.currentUser) {
+            state.currentUser.points = (state.currentUser.points || 0) + earned;
+          }
+          saveState();
+          syncAllUI();
+          showToast(isCorrect ? `إجابة صحيحة! ربحت ${earned} نقطة.` : "تم تسجيل إجابتك.");
+        });
+      });
+
+      feedEl.querySelectorAll("[data-ev-essay]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const evId = btn.dataset.evEssay;
+          const ev = state.events.find((x) => x.id === evId);
+          const txt = document.getElementById(`essay_${evId}`)?.value.trim();
+          if (!ev || !txt || state.answers[evId]) return;
+
+          state.answers[evId] = { value: txt, awarded: ev.points };
+          if (state.currentUser) {
+            state.currentUser.points = (state.currentUser.points || 0) + ev.points;
+          }
+          saveState();
+          syncAllUI();
+          showToast(`تم إرسال إجابتك وإضافة ${ev.points} نقطة!`);
+        });
+      });
+    }
+
+    // فحص جهات الاتصال ومطابقتها مع المسجلين في التطبيق
+    async function matchContactsWithAppUsers(phoneList) {
+      const cleaned = [...new Set(phoneList.map(normalizePhone).filter(Boolean))];
+      state.contacts = [...new Set([...state.contacts, ...cleaned])];
+      saveState();
+
+      const snap = await get(ref(db, "registry/byPhone"));
+      const registeredMap = snap.exists() ? snap.val() : {};
+
+      const matched = [];
+      for (const p of cleaned) {
+        if (registeredMap[p] && p !== state.currentUser?.phone) {
+          matched.push(registeredMap[p]);
+        }
+      }
+
+      const outEl = document.getElementById("contactsScanResult");
+      if (!matched.length) {
+        outEl.innerHTML = `<div class="card"><p style="font-size:13px;color:var(--text-muted);">لم يتم التطابق مع أي مستخدم مسجل في التطبيق ضمن جهات الاتصال المفحوصة.</p></div>`;
+      } else {
+        outEl.innerHTML = matched
+          .map(
+            (u) => `
+            <div class="list-row" data-start-chat-phone="${escapeHtml(u.phone)}" data-start-chat-name="${escapeHtml(u.name)}">
+              <div class="avatar-preview" style="width:42px;height:42px;">${u.avatar ? `<img src="${u.avatar}" />` : escapeHtml(u.name.slice(0, 2))}</div>
+              <div class="row-main">
+                <div class="row-title">${escapeHtml(u.name)}</div>
+                <div class="row-sub">${escapeHtml(u.phone)} • موجود على CHAT✨THEM</div>
+              </div>
+              <span class="badge">مراسلة</span>
+            </div>
+          `
+          )
+          .join("");
+
+        outEl.querySelectorAll("[data-start-chat-phone]").forEach((row) => {
+          row.addEventListener("click", () => {
+            openDirectChat(row.dataset.startChatPhone, row.dataset.startChatName);
+          });
+        });
+      }
+
+      renderGroupEligibleMembers(matched);
+    }
+
+    document.getElementById("scanDeviceContactsBtn").addEventListener("click", async () => {
+      if ("contacts" in navigator && typeof navigator.contacts?.select === "function") {
+        try {
+          const picked = await navigator.contacts.select(["name", "tel"], { multiple: true });
+          const nums = [];
+          for (const item of picked || []) {
+            for (const t of item.tel || []) nums.push(t);
+          }
+          await matchContactsWithAppUsers(nums);
+          return;
+        } catch {
+          showToast("تعذّر فتح قائمة جهات الاتصال تلقائيًا؛ استخدم الفحص اليدوي بالرقم.");
+        }
+      } else {
+        showToast("المتصفح لا يدعم قراءة سجل الهاتف مباشرة؛ استخدم حقل الفحص اليدوي.");
+      }
+      await matchContactsWithAppUsers(state.contacts);
+    });
+
+    document.getElementById("checkManualContactBtn").addEventListener("click", async () => {
+      const val = document.getElementById("manualContactPhone").value.trim();
+      if (!val) return;
+      await matchContactsWithAppUsers([val]);
+      document.getElementById("manualContactPhone").value = "";
+    });
+
+    function renderGroupEligibleMembers(matchedUsers = []) {
+      const box = document.getElementById("groupEligibleMembers");
+      if (!matchedUsers.length) {
+        box.textContent = "افحص جهات الاتصال أولًا لإظهار الأعضاء المتاحين للإضافة.";
+        return;
+      }
+      box.innerHTML = matchedUsers
+        .map(
+          (u) => `
+          <label style="display:flex;align-items:center;gap:6px;margin-top:5px;color:var(--text-main);">
+            <input type="checkbox" class="group-member-chk" value="${escapeHtml(u.phone)}" data-name="${escapeHtml(u.name)}" />
+            <span>${escapeHtml(u.name)} (${escapeHtml(u.phone)})</span>
+          </label>
+        `
+        )
+        .join("");
+    }
+
+    // إنشاء المجموعات (خاصة أو عامة)
+    document.getElementById("createGroupBtn").addEventListener("click", () => {
+      const gName = document.getElementById("groupNameInput").value.trim();
+      const privacy = document.getElementById("groupPrivacyInput").value;
+      if (!gName) {
+        showToast("اكتب اسم المجموعة أولًا.");
+        return;
+      }
+
+      const selectedMembers = [...document.querySelectorAll(".group-member-chk:checked")].map((c) => ({
+        phone: c.value,
+        name: c.dataset.name
+      }));
+
+      const groupId = `grp_${Date.now()}`;
+      state.chats[groupId] = {
+        id: groupId,
+        title: gName,
+        isGroup: true,
+        privacy,
+        members: selectedMembers,
+        messages: []
+      };
+      saveState();
+      document.getElementById("groupNameInput").value = "";
+      renderChatsAndGroups();
+      showToast("تم إنشاء المجموعة بنجاح.");
+    });
+
+    function openDirectChat(targetPhone, targetName) {
+      const myPhone = state.currentUser?.phone || "me";
+      const pairKey = [myPhone, normalizePhone(targetPhone)].sort().join("_");
+      if (!state.chats[pairKey]) {
+        state.chats[pairKey] = {
+          id: pairKey,
+          title: targetName,
+          isGroup: false,
+          messages: []
+        };
+        saveState();
+      }
+      openChatDrawer(pairKey);
+    }
+
+    function openChatDrawer(chatId) {
+      if (typeof stopActiveChatSub === "function") {
+        stopActiveChatSub();
+        stopActiveChatSub = null;
+      }
+      activeChatId = chatId;
+      const chat = state.chats[chatId];
+      if (!chat) return;
+
+      document.getElementById("activeChatTitle").textContent = chat.title;
+      document.getElementById("chatDrawer").classList.add("open");
+      renderChatMessages(chat.messages || []);
+
+      const qRef = query(ref(db, `chat_rooms/${chatId}/messages`), limitToLast(30));
+      stopActiveChatSub = onValue(qRef, (snap) => {
+        const val = snap.val() || {};
+        const list = Object.entries(val).map(([id, item]) => ({ id, ...item }));
+        for (const m of list) {
+          const exists = chat.messages.some((x) => x.id === m.id);
+          if (!exists) {
+            chat.messages.push(m);
+          }
+        }
+        if (chat.messages.length > MAX_LOCAL_MSGS) {
+          chat.messages = chat.messages.slice(-MAX_LOCAL_MSGS);
+        }
+        saveState();
+        renderChatMessages(chat.messages);
+      });
+    }
+
+    function renderChatMessages(msgs) {
+      const box = document.getElementById("chatMessagesBox");
+      const myName = state.currentUser?.name || "أنت";
+      box.innerHTML = msgs
+        .map((m) => {
+          const mine = m.sender === myName;
+          return `
+            <div class="bubble ${mine ? "out" : "in"}">
+              <div>${formatAllowedText(m.text)}</div>
+              <div class="bubble-meta">
+                <span>${escapeHtml(m.sender)}</span>
+                <span>${escapeHtml(m.time)}</span>
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+      box.scrollTop = box.scrollHeight;
+    }
+
+    document.getElementById("sendChatForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!activeChatId) return;
+      const input = document.getElementById("chatTextInput");
+      const text = input.value.trim();
+      if (!text) return;
+
+      const msg = {
+        id: `m_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        sender: state.currentUser?.name || "مستخدم",
+        text,
+        time: new Date().toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" }),
+        createdAt: Date.now()
+      };
+
+      const chat = state.chats[activeChatId];
+      chat.messages = chat.messages || [];
+      chat.messages.push(msg);
+      if (chat.messages.length > MAX_LOCAL_MSGS) {
+        chat.messages = chat.messages.slice(-MAX_LOCAL_MSGS);
+      }
+      saveState();
+      renderChatMessages(chat.messages);
+
+      await push(ref(db, `chat_rooms/${activeChatId}/messages`), msg).catch(() => {});
+      input.value = "";
+    });
+
+    document.getElementById("backFromChatBtn").addEventListener("click", () => {
+      if (typeof stopActiveChatSub === "function") {
+        stopActiveChatSub();
+        stopActiveChatSub = null;
+      }
+      activeChatId = null;
+      document.getElementById("chatDrawer").classList.remove("open");
+      renderChatsAndGroups();
+    });
+
+    function renderChatsAndGroups(filter = "") {
+      const q = filter.trim().toLowerCase();
+      const allChats = Object.values(state.chats);
+
+      const direct = allChats.filter(
+        (c) => !c.isGroup && (!q || c.title.toLowerCase().includes(q))
+      );
+
+      document.getElementById("directChatsList").innerHTML = direct.length
+        ? direct
+            .map((c) => {
+              const last = c.messages?.[c.messages.length - 1];
+              return `
+                <div class="list-row" data-open-chat="${escapeHtml(c.id)}">
+                  <div class="avatar-preview" style="width:44px;height:44px;">${escapeHtml(c.title.slice(0, 2))}</div>
+                  <div class="row-main">
+                    <div class="row-top">
+                      <span class="row-title">${escapeHtml(c.title)}</span>
+                      <span class="row-sub">${escapeHtml(last?.time || "")}</span>
+                    </div>
+                    <div class="row-sub">${escapeHtml(last?.text || "ابدأ المراسلة الآن")}</div>
+                  </div>
+                </div>
+              `;
+            })
+            .join("")
+        : `<div class="card"><p style="font-size:13px;color:var(--text-muted);">لا توجد محادثات مباشرة بعد؛ استخدم تبويب الإضافة لفحص جهات الاتصال.</p></div>`;
+
+      const groups = allChats.filter((c) => c.isGroup);
+      document.getElementById("groupsList").innerHTML = groups
+        .map(
+          (g) => `
+          <div class="list-row" data-open-chat="${escapeHtml(g.id)}">
+            <div class="avatar-preview" style="width:44px;height:44px;">${g.privacy === "public" ? "🌐" : "🔒"}</div>
+            <div class="row-main">
+              <div class="row-top">
+                <span class="row-title">${escapeHtml(g.title)}</span>
+                <span class="badge">${g.privacy === "public" ? "عامة" : "خاصة"}</span>
+              </div>
+              <div class="row-sub">الأعضاء: ${g.members?.length || 0}</div>
+            </div>
+          </div>
+        `
+        )
+        .join("");
+
+      document.querySelectorAll("[data-open-chat]").forEach((el) => {
+        el.addEventListener("click", () => openChatDrawer(el.dataset.openChat));
+      });
+    }
+
+    // الإعدادات وتعديل الحساب والمظهر والخلفيات
+    document.getElementById("toggleEditProfileBtn").addEventListener("click", () => {
+      const panel = document.getElementById("editProfilePanel");
+      const open = panel.style.display === "none";
+      panel.style.display = open ? "block" : "none";
+      document.getElementById("editNameInput").value = state.currentUser?.name || "";
+      pendingEditAvatar = state.currentUser?.avatar || "";
+    });
+
+    document.getElementById("editPhotoFile").addEventListener("change", async (e) => {
+      const f = e.target.files?.[0];
+      if (!f) return;
+      try {
+        pendingEditAvatar = await compressAvatarImage(f);
+        renderAvatarBox(document.getElementById("settingsAvatarPreview"), pendingEditAvatar, state.currentUser?.name);
+      } catch (err) {
+        showToast(err.message);
+      }
+    });
+
+    document.getElementById("saveProfileEditsBtn").addEventListener("click", async () => {
+      if (!state.currentUser) return;
+      const nextName = document.getElementById("editNameInput").value.trim().replace(/\s+/g, " ");
+      if (nextName.length < 2) {
+        showToast("اكتب اسمًا صحيحًا.");
+        return;
+      }
+
+      const oldNameKey = encodeURIComponent(normalizeName(state.currentUser.name));
+      const newNameKey = encodeURIComponent(normalizeName(nextName));
+      if (oldNameKey !== newNameKey) {
+        const exists = await get(ref(db, `registry/byName/${newNameKey}`));
+        if (exists.exists()) {
+          showToast("هذا الاسم مستخدم بالفعل من شخص آخر.");
+          return;
+        }
+        await set(ref(db, `registry/byName/${newNameKey}`), { phone: state.currentUser.phone, name: nextName });
+      }
+
+      state.currentUser.name = nextName;
+      state.currentUser.avatar = pendingEditAvatar || state.currentUser.avatar || "";
+      await set(ref(db, `registry/byPhone/${state.currentUser.phone}`), state.currentUser);
+      saveState();
+      document.getElementById("editProfilePanel").style.display = "none";
+      syncAllUI();
+      showToast("تم تحديث بيانات الحساب.");
+    });
+
+    document.getElementById("themeSelect").addEventListener("change", (e) => {
+      state.theme = e.target.value;
+      saveState();
+      applyAppearance();
+    });
+
+    document.getElementById("fontSizeSelect").addEventListener("change", (e) => {
+      state.fontScale = Number(e.target.value) || 1;
+      saveState();
+      applyAppearance();
+    });
+
+    document.getElementById("chatBgSelect").addEventListener("change", (e) => {
+      state.chatBg = e.target.value;
+      saveState();
+      applyAppearance();
+    });
+
+    document.getElementById("customBgBtn").addEventListener("click", () => {
+      document.getElementById("customBgFile").click();
+    });
+
+    document.getElementById("customBgFile").addEventListener("change", async (e) => {
+      const f = e.target.files?.[0];
+      if (!f) return;
+      try {
+        const dataUrl = await compressAvatarImage(f, 700, 0.55);
+        state.chatBg = `url("${dataUrl}")`;
+        saveState();
+        applyAppearance();
+        showToast("تم تعيين صورة الخلفية للشات.");
+      } catch (err) {
+        showToast(err.message);
+      }
+    });
+
+    document.getElementById("signOutAppBtn").addEventListener("click", () => {
+      state.currentUser = null;
+      saveState();
+      syncAllUI();
+    });
+
+    function applyAppearance() {
+      document.body.classList.toggle("light-mode", state.theme === "light");
+      document.documentElement.style.setProperty("--font-scale", String(state.fontScale || 1));
+      document.documentElement.style.setProperty(
+        "--chat-bg-image",
+        state.chatBg && state.chatBg !== "none" ? state.chatBg : "none"
+      );
+      document.getElementById("themeSelect").value = state.theme;
+      document.getElementById("fontSizeSelect").value = String(state.fontScale || 1);
+      document.getElementById("chatBgSelect").value = state.chatBg.startsWith("url") ? "none" : state.chatBg;
+    }
+
+    // التنقل بين التبويبات الخمسة
+    document.querySelectorAll(".nav-item").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".nav-item").forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(`page-${btn.dataset.page}`).classList.add("active");
+      });
+    });
+
+    document.getElementById("homeSearch").addEventListener("input", (e) => {
+      renderChatsAndGroups(e.target.value);
+    });
+
+    function syncAllUI() {
+      const authEl = document.getElementById("authOverlay");
+      if (state.currentUser) {
+        authEl.classList.add("hidden");
+        document.getElementById("headerUserMeta").textContent =
+          `${state.currentUser.name} • ${state.currentUser.phone}`;
+        document.getElementById("pointsBadge").textContent = `${state.currentUser.points || 0} نقطة`;
+        document.getElementById("settingsNameText").textContent = state.currentUser.name;
+        document.getElementById("settingsPhoneText").textContent = state.currentUser.phone;
+        renderAvatarBox(
+          document.getElementById("settingsAvatarPreview"),
+          state.currentUser.avatar,
+          state.currentUser.name
+        );
+      } else {
+        authEl.classList.remove("hidden");
+        document.getElementById("headerUserMeta").textContent = "غير مسجل";
+      }
+
+      applyAppearance();
+      syncEventsPublisherUI();
+      renderChatsAndGroups(document.getElementById("homeSearch").value);
+      renderEventsAndLeaderboard();
+    }
+
+    syncAllUI();
+  </script>
+</body>
+</html>
