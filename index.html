@@ -18,7 +18,6 @@
       --text-muted: #8696a0;
       --border: rgba(255, 255, 255, 0.08);
       --danger: #ef4444;
-      --warning: #f59e0b;
       --font-scale: 1;
       --chat-bg-image: none;
     }
@@ -63,10 +62,8 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 0 45px rgba(0, 0, 0, 0.7);
     }
 
-    /* شاشة الدخول / إنشاء الحساب */
     .auth-overlay {
       position: absolute;
       inset: 0;
@@ -167,16 +164,15 @@
     }
 
     .avatar-preview {
-      width: 64px;
-      height: 64px;
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
-      object-fit: cover;
       border: 2px solid var(--accent);
       background: var(--bg-input);
       display: grid;
       place-items: center;
       font-weight: 800;
-      font-size: 20px;
+      font-size: 18px;
       overflow: hidden;
       flex-shrink: 0;
     }
@@ -187,7 +183,6 @@
       object-fit: cover;
     }
 
-    /* الهيدر العلوي مع الكرة الأرضية للباب الخلفي */
     .top-bar {
       background: var(--bg-surface);
       padding: 11px 14px;
@@ -196,6 +191,7 @@
       justify-content: space-between;
       border-bottom: 1px solid var(--border);
       z-index: 20;
+      flex-shrink: 0;
     }
 
     .brand-group {
@@ -227,11 +223,13 @@
       flex: 1;
       overflow-y: auto;
       padding-bottom: 76px;
+      position: relative;
     }
 
     .page {
       display: none;
       padding: 12px;
+      width: 100%;
     }
 
     .page.active {
@@ -302,7 +300,6 @@
       font-weight: 700;
     }
 
-    /* تبويب الأحداث والمسابقات والليدر بورد */
     .quiz-option {
       display: block;
       width: 100%;
@@ -335,7 +332,6 @@
       border-bottom: none;
     }
 
-    /* شاشة الشات */
     .chat-drawer {
       position: absolute;
       inset: 0;
@@ -433,18 +429,19 @@
       cursor: pointer;
     }
 
-    /* التبويبات السفلية الخمسة */
     .bottom-nav {
-      position: absolute;
+      position: fixed;
       bottom: 0;
-      left: 0;
-      right: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
       height: 62px;
       background: var(--bg-surface);
       border-top: 1px solid var(--border);
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      z-index: 25;
+      z-index: 30;
     }
 
     .nav-item {
@@ -458,7 +455,16 @@
       gap: 2px;
       cursor: pointer;
       font-size: 10px;
-      padding: 2px;
+      padding: 4px 2px;
+      min-width: 0;
+    }
+
+    .nav-item span {
+      pointer-events: none;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
     }
 
     .nav-item .ico {
@@ -472,7 +478,7 @@
     }
 
     .toast {
-      position: absolute;
+      position: fixed;
       bottom: 74px;
       left: 50%;
       transform: translateX(-50%);
@@ -499,10 +505,11 @@
       padding: 8px 0 6px;
     }
   </style>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 </head>
 <body>
   <div class="app-shell">
-    <!-- شاشة الدخول أو إنشاء الحساب -->
     <div class="auth-overlay" id="authOverlay">
       <div>
         <div style="text-align: center; margin-bottom: 14px;">
@@ -517,7 +524,6 @@
           <button class="mode-btn" id="modeLoginBtn" type="button">تسجيل الدخول</button>
         </div>
 
-        <!-- وضع إنشاء حساب جديد -->
         <div class="auth-card" id="registerFormBox">
           <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
             <div class="avatar-preview" id="regAvatarPreview">صورة</div>
@@ -530,18 +536,17 @@
 
           <div class="field">
             <label>الاسم الكامل (يُربط برقمك ولا يتكرر)</label>
-            <input class="input" id="regNameInput" type="text" placeholder=":  " />
+            <input class="input" id="regNameInput" type="text" placeholder="مثال: أنور وجيه" />
           </div>
 
           <div class="field">
             <label>رقم الموبايل</label>
-            <input class="input" id="regPhoneInput" type="tel" placeholder=" />
+            <input class="input" id="regPhoneInput" type="tel" placeholder="مثال: 010xxxxxxxx" />
           </div>
 
           <button class="btn-primary" id="googleRegisterBtn" type="button">تسجيل الدخول بجوجل وإنشاء الحساب</button>
         </div>
 
-        <!-- وضع تسجيل الدخول المباشر -->
         <div class="auth-card" id="loginFormBox" style="display: none;">
           <div class="field">
             <label>الاسم المسجل</label>
@@ -558,7 +563,6 @@
       <div class="footer-sig">جميع الحقوق محفوظة — أنور وجيه</div>
     </div>
 
-    <!-- الهيدر العلوي -->
     <header class="top-bar">
       <div class="brand-group">
         <span class="globe-trigger" id="globeBackdoor" title="🌐">🌐</span>
@@ -570,16 +574,13 @@
       <span class="badge" id="pointsBadge">0 نقطة</span>
     </header>
 
-    <!-- المحتوى الرئيسي -->
-    <main class="content-scroll">
-      <!-- 1. الرئيسية (الشاتات) 🏫 -->
+    <main class="content-scroll" id="mainScrollArea">
       <section class="page active" id="page-home">
         <input class="input" id="homeSearch" type="text" placeholder="ابحث في محادثاتك..." style="margin-bottom: 10px;" />
         <div id="directChatsList"></div>
         <div class="footer-sig">جميع الحقوق محفوظة — أنور وجيه</div>
       </section>
 
-      <!-- 2. الأحداث والتنبيهات والمسابقات والليدر بورد 🎁 -->
       <section class="page" id="page-events">
         <div class="card" id="adminPublisherCard" style="display: none; border-color: var(--accent);">
           <div class="card-title">
@@ -628,7 +629,6 @@
         <div id="eventsFeedList"></div>
       </section>
 
-      <!-- 3. الإضافة وفحص جهات الاتصال -->
       <section class="page" id="page-add">
         <div class="card">
           <div class="card-title">إضافة وفحص جهات الاتصال</div>
@@ -647,13 +647,12 @@
         <div id="contactsScanResult"></div>
       </section>
 
-      <!-- 4. المجموعات 😊 -->
       <section class="page" id="page-groups">
         <div class="card">
           <div class="card-title">إنشاء مجموعة جديدة</div>
           <div class="field">
             <label>اسم المجموعة</label>
-            <input class="input" id="groupNameInput" type="text" placeholder=":    " />
+            <input class="input" id="groupNameInput" type="text" placeholder="مثال: فريق العمل أو الأصدقاء" />
           </div>
           <div class="field">
             <label>نوع المجموعة</label>
@@ -672,7 +671,6 @@
         <div id="groupsList"></div>
       </section>
 
-      <!-- 5. الإعدادات ⚙️ -->
       <section class="page" id="page-settings">
         <div class="card">
           <div class="card-title">
@@ -747,7 +745,6 @@
       </section>
     </main>
 
-    <!-- شاشة المحادثة (نصوص + روابط + أرقام موبايلات فقط) -->
     <div class="chat-drawer" id="chatDrawer">
       <div class="chat-head">
         <button class="btn-sm" id="backFromChatBtn" type="button">رجوع</button>
@@ -767,8 +764,7 @@
 
     <div class="toast" id="toastNotice"></div>
 
-    <!-- التبويبات الخمسة المطلوبة -->
-    <nav class="bottom-nav">
+    <nav class="bottom-nav" id="bottomTabsBar">
       <button class="nav-item active" data-page="home" type="button">
         <span class="ico">🏫</span>
         <span>الرئيسية</span>
@@ -792,19 +788,7 @@
     </nav>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-      getDatabase,
-      ref,
-      set,
-      get,
-      push,
-      onValue,
-      limitToLast,
-      query
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
+  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyDoOPYtApwUbXrmDt0h1fWGsaI301QRNd0",
       authDomain: "chat-them.firebaseapp.com",
@@ -816,20 +800,20 @@
       measurementId: "G-MJQ2K3BCYB"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    const STATE_KEY = "chat_them_local_state_v2";
+    const STATE_KEY = "chat_them_local_state_v3";
     const ADMIN_DEVICE_KEY = "chat_them_owner_publisher_v1";
     const MAX_LOCAL_MSGS = 100;
-    const MEDIA_KEEP_LATEST = 2;
 
     const defaultState = {
-      currentUser: null, // { name, phone, avatar, points }
+      currentUser: null,
+      activeTab: "home",
       theme: "dark",
       fontScale: 1,
       chatBg: "none",
-      contacts: [], // أرقام جهات الاتصال المفحوصة
+      contacts: [],
       chats: {
         "welcome-team": {
           id: "welcome-team",
@@ -847,32 +831,44 @@
           ]
         }
       },
-      events: [], // محفوظة محليًا على جهاز الناشر ويمكن مزامنتها أو عرضها
-      answers: {} // { eventId: { value, awarded } }
+      events: [],
+      answers: {}
     };
+
+    function cloneDefault() {
+      return JSON.parse(JSON.stringify(defaultState));
+    }
 
     let state = loadState();
     let pendingRegAvatar = "";
     let pendingEditAvatar = "";
     let activeChatId = null;
-    let stopActiveChatSub = null;
+    let activeChatRef = null;
+    let activeChatCb = null;
     let globeTapCount = 0;
     let globeTapTimer = null;
 
     function loadState() {
       try {
         const raw = localStorage.getItem(STATE_KEY);
-        if (!raw) return structuredClone(defaultState);
-        return { ...structuredClone(defaultState), ...JSON.parse(raw) };
-      } catch {
-        return structuredClone(defaultState);
+        if (!raw) return cloneDefault();
+        const parsed = JSON.parse(raw);
+        const base = cloneDefault();
+        return Object.assign(base, parsed, {
+          chats: Object.assign(base.chats, (parsed && parsed.chats) || {}),
+          events: Array.isArray(parsed && parsed.events) ? parsed.events : base.events,
+          answers: (parsed && parsed.answers) || base.answers,
+          contacts: Array.isArray(parsed && parsed.contacts) ? parsed.contacts : base.contacts
+        });
+      } catch (e) {
+        return cloneDefault();
       }
     }
 
     function saveState() {
       try {
         localStorage.setItem(STATE_KEY, JSON.stringify(state));
-      } catch {
+      } catch (e) {
         showToast("تنبيه: التخزين المحلي قارب على الامتلاء.");
       }
     }
@@ -901,7 +897,6 @@
         .replaceAll('"', "&quot;");
     }
 
-    // تحويل النص مع إبراز الروابط وأرقام الهواتف فقط دون أي وسائط
     function formatAllowedText(rawText) {
       const safe = escapeHtml(rawText);
       const urlRegex = /(https?:\/\/[^\s]+)/gi;
@@ -912,14 +907,44 @@
         .replace(phoneRegex, (num) => `<strong>${num}</strong>`);
     }
 
-    // ضغط الصور تلقائيًا للصور الشخصية أو الخلفية
-    function compressAvatarImage(file, maxSize = 260, quality = 0.6) {
+    function switchTab(pageKey) {
+      if (!pageKey) return;
+      detachChatListener();
+      activeChatId = null;
+      document.getElementById("chatDrawer").classList.remove("open");
+
+      state.activeTab = pageKey;
+      saveState();
+
+      document.querySelectorAll("#bottomTabsBar .nav-item").forEach((btn) => {
+        btn.classList.toggle("active", btn.getAttribute("data-page") === pageKey);
+      });
+
+      document.querySelectorAll("#mainScrollArea .page").forEach((sec) => {
+        sec.classList.toggle("active", sec.id === `page-${pageKey}`);
+      });
+
+      const scrollArea = document.getElementById("mainScrollArea");
+      if (scrollArea) scrollArea.scrollTop = 0;
+    }
+
+    document.getElementById("bottomTabsBar").addEventListener("click", (e) => {
+      const btn = e.target.closest(".nav-item");
+      if (!btn) return;
+      const targetPage = btn.getAttribute("data-page");
+      switchTab(targetPage);
+    });
+
+    function compressAvatarImage(file, maxSize, quality) {
+      maxSize = maxSize || 260;
+      quality = quality || 0.6;
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = (ev) => {
           const img = new Image();
           img.onload = () => {
-            let { width, height } = img;
+            let width = img.width;
+            let height = img.height;
             if (width > maxSize || height > maxSize) {
               if (width > height) {
                 height = Math.round((height * maxSize) / width);
@@ -952,22 +977,21 @@
       }
     }
 
-    // التحقق من سجل الحسابات في Firebase لمنع تكرار الاسم أو الرقم وربطهما معًا
-    async function registerAccount({ name, phone, avatar }) {
-      const cleanName = String(name || "").trim().replace(/\s+/g, " ");
-      const cleanPhone = normalizePhone(phone);
+    async function registerAccount(payload) {
+      const cleanName = String(payload.name || "").trim().replace(/\s+/g, " ");
+      const cleanPhone = normalizePhone(payload.phone);
       if (cleanName.length < 2) return { ok: false, msg: "اكتب اسمًا صحيحًا." };
       if (cleanPhone.length < 7) return { ok: false, msg: "اكتب رقم موبايل صحيحًا." };
 
       const nameKey = encodeURIComponent(normalizeName(cleanName));
       const phoneKey = cleanPhone;
 
-      const nameSnap = await get(ref(db, `registry/byName/${nameKey}`));
+      const nameSnap = await db.ref(`registry/byName/${nameKey}`).get();
       if (nameSnap.exists()) {
         return { ok: false, msg: "هذا الاسم مسجل بالفعل؛ لكل شخص حساب واحد فقط." };
       }
 
-      const phoneSnap = await get(ref(db, `registry/byPhone/${phoneKey}`));
+      const phoneSnap = await db.ref(`registry/byPhone/${phoneKey}`).get();
       if (phoneSnap.exists()) {
         return { ok: false, msg: "رقم الموبايل هذا مسجل بالفعل بحساب آخر." };
       }
@@ -975,25 +999,25 @@
       const userRecord = {
         name: cleanName,
         phone: cleanPhone,
-        avatar: avatar || "",
+        avatar: payload.avatar || "",
         points: 0,
         createdAt: Date.now()
       };
 
-      await set(ref(db, `registry/byPhone/${phoneKey}`), userRecord);
-      await set(ref(db, `registry/byName/${nameKey}`), { phone: cleanPhone, name: cleanName });
+      await db.ref(`registry/byPhone/${phoneKey}`).set(userRecord);
+      await db.ref(`registry/byName/${nameKey}`).set({ phone: cleanPhone, name: cleanName });
 
       return { ok: true, user: userRecord };
     }
 
-    async function loginWithNameAndPhone({ name, phone }) {
-      const cleanName = String(name || "").trim().replace(/\s+/g, " ");
-      const cleanPhone = normalizePhone(phone);
+    async function loginWithNameAndPhone(payload) {
+      const cleanName = String(payload.name || "").trim().replace(/\s+/g, " ");
+      const cleanPhone = normalizePhone(payload.phone);
       if (!cleanName || !cleanPhone) {
         return { ok: false, msg: "أدخل الاسم ورقم الموبايل معًا." };
       }
 
-      const phoneSnap = await get(ref(db, `registry/byPhone/${cleanPhone}`));
+      const phoneSnap = await db.ref(`registry/byPhone/${cleanPhone}`).get();
       if (!phoneSnap.exists()) {
         return { ok: false, msg: "الحساب غير موجود؛ أنشئ حسابًا جديدًا أولًا." };
       }
@@ -1006,7 +1030,6 @@
       return { ok: true, user: record };
     }
 
-    // تبديل وضع التسجيل / الدخول
     document.getElementById("modeRegisterBtn").addEventListener("click", () => {
       document.getElementById("modeRegisterBtn").classList.add("active");
       document.getElementById("modeLoginBtn").classList.remove("active");
@@ -1026,7 +1049,7 @@
     });
 
     document.getElementById("regPhotoFile").addEventListener("change", async (e) => {
-      const f = e.target.files?.[0];
+      const f = e.target.files && e.target.files[0];
       if (!f) return;
       try {
         pendingRegAvatar = await compressAvatarImage(f);
@@ -1039,7 +1062,7 @@
     document.getElementById("googleRegisterBtn").addEventListener("click", async () => {
       const name = document.getElementById("regNameInput").value;
       const phone = document.getElementById("regPhoneInput").value;
-      const res = await registerAccount({ name, phone, avatar: pendingRegAvatar });
+      const res = await registerAccount({ name: name, phone: phone, avatar: pendingRegAvatar });
       if (!res.ok) {
         showToast(res.msg);
         return;
@@ -1053,7 +1076,7 @@
     document.getElementById("directLoginBtn").addEventListener("click", async () => {
       const name = document.getElementById("loginNameInput").value;
       const phone = document.getElementById("loginPhoneInput").value;
-      const res = await loginWithNameAndPhone({ name, phone });
+      const res = await loginWithNameAndPhone({ name: name, phone: phone });
       if (!res.ok) {
         showToast(res.msg);
         return;
@@ -1064,7 +1087,6 @@
       showToast(`أهلًا بك ${res.user.name}`);
     });
 
-    // الباب الخلفي: 10 ضغطات متتالية على 🌐 لفتح صلاحية النشر في EVENTS & NOTIFICATIONS
     document.getElementById("globeBackdoor").addEventListener("click", () => {
       globeTapCount += 1;
       clearTimeout(globeTapTimer);
@@ -1076,6 +1098,7 @@
         globeTapCount = 0;
         localStorage.setItem(ADMIN_DEVICE_KEY, "granted");
         syncEventsPublisherUI();
+        switchTab("events");
         showToast("تم فتح لوحة نشر الأحداث والمسابقات على هذا الجهاز.");
       }
     });
@@ -1094,7 +1117,6 @@
         e.target.value === "mcq" ? "block" : "none";
     });
 
-    // نشر حدث أو مسابقة أو تنبيه في EVENTS & NOTIFICATIONS
     document.getElementById("publishEventBtn").addEventListener("click", async () => {
       if (!isOwnerPublisherAllowed()) {
         showToast("النشر متاح للناشر فقط عبر الباب الخلفي.");
@@ -1127,19 +1149,18 @@
 
       const eventItem = {
         id: `ev_${Date.now()}`,
-        type,
-        title,
-        options,
-        correctIndex,
-        points,
+        type: type,
+        title: title,
+        options: options,
+        correctIndex: correctIndex,
+        points: points,
         createdAt: Date.now()
       };
 
       state.events.unshift(eventItem);
       saveState();
 
-      // مزامنة الإشعار/الحدث لقاعدة البيانات ليتلقاه المستخدمون الآخرون
-      await set(ref(db, `events_feed/${eventItem.id}`), eventItem).catch(() => {});
+      await db.ref(`events_feed/${eventItem.id}`).set(eventItem).catch(() => {});
 
       document.getElementById("postTitleInput").value = "";
       document.getElementById("mcqOptionsInput").value = "";
@@ -1151,8 +1172,8 @@
       const feedEl = document.getElementById("eventsFeedList");
       const lbEl = document.getElementById("leaderboardList");
 
-      const myPoints = state.currentUser?.points || 0;
-      const myName = state.currentUser?.name || "أنت";
+      const myPoints = (state.currentUser && state.currentUser.points) || 0;
+      const myName = (state.currentUser && state.currentUser.name) || "أنت";
       lbEl.innerHTML = `
         <div class="leader-item">
           <span>🥇 ${escapeHtml(myName)}</span>
@@ -1173,12 +1194,12 @@
           if (ev.type === "mcq") {
             bodyHtml = ev.options
               .map((opt, idx) => {
-                const picked = prevAns?.value === idx ? "selected" : "";
+                const picked = prevAns && prevAns.value === idx ? "selected" : "";
                 return `<button class="quiz-option ${picked}" data-ev-mcq="${ev.id}" data-opt-idx="${idx}" type="button">${escapeHtml(opt)}</button>`;
               })
               .join("");
           } else if (ev.type === "essay") {
-            const val = prevAns?.value || "";
+            const val = (prevAns && prevAns.value) || "";
             bodyHtml = `
               <textarea class="textarea" id="essay_${ev.id}" placeholder="اكتب إجابتك المقالية...">${escapeHtml(val)}</textarea>
               <button class="btn-sm" data-ev-essay="${ev.id}" type="button" style="margin-top:6px;">إرسال الإجابة (+${ev.points} نقطة)</button>
@@ -1221,7 +1242,8 @@
         btn.addEventListener("click", () => {
           const evId = btn.dataset.evEssay;
           const ev = state.events.find((x) => x.id === evId);
-          const txt = document.getElementById(`essay_${evId}`)?.value.trim();
+          const txtEl = document.getElementById(`essay_${evId}`);
+          const txt = txtEl ? txtEl.value.trim() : "";
           if (!ev || !txt || state.answers[evId]) return;
 
           state.answers[evId] = { value: txt, awarded: ev.points };
@@ -1235,18 +1257,17 @@
       });
     }
 
-    // فحص جهات الاتصال ومطابقتها مع المسجلين في التطبيق
     async function matchContactsWithAppUsers(phoneList) {
       const cleaned = [...new Set(phoneList.map(normalizePhone).filter(Boolean))];
       state.contacts = [...new Set([...state.contacts, ...cleaned])];
       saveState();
 
-      const snap = await get(ref(db, "registry/byPhone"));
+      const snap = await db.ref("registry/byPhone").get();
       const registeredMap = snap.exists() ? snap.val() : {};
 
       const matched = [];
       for (const p of cleaned) {
-        if (registeredMap[p] && p !== state.currentUser?.phone) {
+        if (registeredMap[p] && p !== (state.currentUser && state.currentUser.phone)) {
           matched.push(registeredMap[p]);
         }
       }
@@ -1281,7 +1302,7 @@
     }
 
     document.getElementById("scanDeviceContactsBtn").addEventListener("click", async () => {
-      if ("contacts" in navigator && typeof navigator.contacts?.select === "function") {
+      if (navigator.contacts && typeof navigator.contacts.select === "function") {
         try {
           const picked = await navigator.contacts.select(["name", "tel"], { multiple: true });
           const nums = [];
@@ -1290,7 +1311,7 @@
           }
           await matchContactsWithAppUsers(nums);
           return;
-        } catch {
+        } catch (e) {
           showToast("تعذّر فتح قائمة جهات الاتصال تلقائيًا؛ استخدم الفحص اليدوي بالرقم.");
         }
       } else {
@@ -1306,7 +1327,8 @@
       document.getElementById("manualContactPhone").value = "";
     });
 
-    function renderGroupEligibleMembers(matchedUsers = []) {
+    function renderGroupEligibleMembers(matchedUsers) {
+      matchedUsers = matchedUsers || [];
       const box = document.getElementById("groupEligibleMembers");
       if (!matchedUsers.length) {
         box.textContent = "افحص جهات الاتصال أولًا لإظهار الأعضاء المتاحين للإضافة.";
@@ -1324,7 +1346,6 @@
         .join("");
     }
 
-    // إنشاء المجموعات (خاصة أو عامة)
     document.getElementById("createGroupBtn").addEventListener("click", () => {
       const gName = document.getElementById("groupNameInput").value.trim();
       const privacy = document.getElementById("groupPrivacyInput").value;
@@ -1343,7 +1364,7 @@
         id: groupId,
         title: gName,
         isGroup: true,
-        privacy,
+        privacy: privacy,
         members: selectedMembers,
         messages: []
       };
@@ -1354,7 +1375,7 @@
     });
 
     function openDirectChat(targetPhone, targetName) {
-      const myPhone = state.currentUser?.phone || "me";
+      const myPhone = (state.currentUser && state.currentUser.phone) || "me";
       const pairKey = [myPhone, normalizePhone(targetPhone)].sort().join("_");
       if (!state.chats[pairKey]) {
         state.chats[pairKey] = {
@@ -1368,11 +1389,16 @@
       openChatDrawer(pairKey);
     }
 
-    function openChatDrawer(chatId) {
-      if (typeof stopActiveChatSub === "function") {
-        stopActiveChatSub();
-        stopActiveChatSub = null;
+    function detachChatListener() {
+      if (activeChatRef && activeChatCb) {
+        activeChatRef.off("value", activeChatCb);
       }
+      activeChatRef = null;
+      activeChatCb = null;
+    }
+
+    function openChatDrawer(chatId) {
+      detachChatListener();
       activeChatId = chatId;
       const chat = state.chats[chatId];
       if (!chat) return;
@@ -1381,10 +1407,10 @@
       document.getElementById("chatDrawer").classList.add("open");
       renderChatMessages(chat.messages || []);
 
-      const qRef = query(ref(db, `chat_rooms/${chatId}/messages`), limitToLast(30));
-      stopActiveChatSub = onValue(qRef, (snap) => {
+      activeChatRef = db.ref(`chat_rooms/${chatId}/messages`).limitToLast(30);
+      activeChatCb = (snap) => {
         const val = snap.val() || {};
-        const list = Object.entries(val).map(([id, item]) => ({ id, ...item }));
+        const list = Object.entries(val).map(([id, item]) => Object.assign({ id: id }, item));
         for (const m of list) {
           const exists = chat.messages.some((x) => x.id === m.id);
           if (!exists) {
@@ -1396,12 +1422,13 @@
         }
         saveState();
         renderChatMessages(chat.messages);
-      });
+      };
+      activeChatRef.on("value", activeChatCb);
     }
 
     function renderChatMessages(msgs) {
       const box = document.getElementById("chatMessagesBox");
-      const myName = state.currentUser?.name || "أنت";
+      const myName = (state.currentUser && state.currentUser.name) || "أنت";
       box.innerHTML = msgs
         .map((m) => {
           const mine = m.sender === myName;
@@ -1428,8 +1455,8 @@
 
       const msg = {
         id: `m_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-        sender: state.currentUser?.name || "مستخدم",
-        text,
+        sender: (state.currentUser && state.currentUser.name) || "مستخدم",
+        text: text,
         time: new Date().toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" }),
         createdAt: Date.now()
       };
@@ -1443,22 +1470,19 @@
       saveState();
       renderChatMessages(chat.messages);
 
-      await push(ref(db, `chat_rooms/${activeChatId}/messages`), msg).catch(() => {});
+      await db.ref(`chat_rooms/${activeChatId}/messages`).push(msg).catch(() => {});
       input.value = "";
     });
 
     document.getElementById("backFromChatBtn").addEventListener("click", () => {
-      if (typeof stopActiveChatSub === "function") {
-        stopActiveChatSub();
-        stopActiveChatSub = null;
-      }
+      detachChatListener();
       activeChatId = null;
       document.getElementById("chatDrawer").classList.remove("open");
       renderChatsAndGroups();
     });
 
-    function renderChatsAndGroups(filter = "") {
-      const q = filter.trim().toLowerCase();
+    function renderChatsAndGroups(filter) {
+      const q = String(filter || "").trim().toLowerCase();
       const allChats = Object.values(state.chats);
 
       const direct = allChats.filter(
@@ -1468,16 +1492,16 @@
       document.getElementById("directChatsList").innerHTML = direct.length
         ? direct
             .map((c) => {
-              const last = c.messages?.[c.messages.length - 1];
+              const last = c.messages && c.messages[c.messages.length - 1];
               return `
                 <div class="list-row" data-open-chat="${escapeHtml(c.id)}">
                   <div class="avatar-preview" style="width:44px;height:44px;">${escapeHtml(c.title.slice(0, 2))}</div>
                   <div class="row-main">
                     <div class="row-top">
                       <span class="row-title">${escapeHtml(c.title)}</span>
-                      <span class="row-sub">${escapeHtml(last?.time || "")}</span>
+                      <span class="row-sub">${escapeHtml((last && last.time) || "")}</span>
                     </div>
-                    <div class="row-sub">${escapeHtml(last?.text || "ابدأ المراسلة الآن")}</div>
+                    <div class="row-sub">${escapeHtml((last && last.text) || "ابدأ المراسلة الآن")}</div>
                   </div>
                 </div>
               `;
@@ -1496,7 +1520,7 @@
                 <span class="row-title">${escapeHtml(g.title)}</span>
                 <span class="badge">${g.privacy === "public" ? "عامة" : "خاصة"}</span>
               </div>
-              <div class="row-sub">الأعضاء: ${g.members?.length || 0}</div>
+              <div class="row-sub">الأعضاء: ${(g.members && g.members.length) || 0}</div>
             </div>
           </div>
         `
@@ -1508,21 +1532,24 @@
       });
     }
 
-    // الإعدادات وتعديل الحساب والمظهر والخلفيات
     document.getElementById("toggleEditProfileBtn").addEventListener("click", () => {
       const panel = document.getElementById("editProfilePanel");
       const open = panel.style.display === "none";
       panel.style.display = open ? "block" : "none";
-      document.getElementById("editNameInput").value = state.currentUser?.name || "";
-      pendingEditAvatar = state.currentUser?.avatar || "";
+      document.getElementById("editNameInput").value = (state.currentUser && state.currentUser.name) || "";
+      pendingEditAvatar = (state.currentUser && state.currentUser.avatar) || "";
     });
 
     document.getElementById("editPhotoFile").addEventListener("change", async (e) => {
-      const f = e.target.files?.[0];
+      const f = e.target.files && e.target.files[0];
       if (!f) return;
       try {
         pendingEditAvatar = await compressAvatarImage(f);
-        renderAvatarBox(document.getElementById("settingsAvatarPreview"), pendingEditAvatar, state.currentUser?.name);
+        renderAvatarBox(
+          document.getElementById("settingsAvatarPreview"),
+          pendingEditAvatar,
+          state.currentUser && state.currentUser.name
+        );
       } catch (err) {
         showToast(err.message);
       }
@@ -1539,17 +1566,17 @@
       const oldNameKey = encodeURIComponent(normalizeName(state.currentUser.name));
       const newNameKey = encodeURIComponent(normalizeName(nextName));
       if (oldNameKey !== newNameKey) {
-        const exists = await get(ref(db, `registry/byName/${newNameKey}`));
+        const exists = await db.ref(`registry/byName/${newNameKey}`).get();
         if (exists.exists()) {
           showToast("هذا الاسم مستخدم بالفعل من شخص آخر.");
           return;
         }
-        await set(ref(db, `registry/byName/${newNameKey}`), { phone: state.currentUser.phone, name: nextName });
+        await db.ref(`registry/byName/${newNameKey}`).set({ phone: state.currentUser.phone, name: nextName });
       }
 
       state.currentUser.name = nextName;
       state.currentUser.avatar = pendingEditAvatar || state.currentUser.avatar || "";
-      await set(ref(db, `registry/byPhone/${state.currentUser.phone}`), state.currentUser);
+      await db.ref(`registry/byPhone/${state.currentUser.phone}`).set(state.currentUser);
       saveState();
       document.getElementById("editProfilePanel").style.display = "none";
       syncAllUI();
@@ -1579,7 +1606,7 @@
     });
 
     document.getElementById("customBgFile").addEventListener("change", async (e) => {
-      const f = e.target.files?.[0];
+      const f = e.target.files && e.target.files[0];
       if (!f) return;
       try {
         const dataUrl = await compressAvatarImage(f, 700, 0.55);
@@ -1610,16 +1637,6 @@
       document.getElementById("chatBgSelect").value = state.chatBg.startsWith("url") ? "none" : state.chatBg;
     }
 
-    // التنقل بين التبويبات الخمسة
-    document.querySelectorAll(".nav-item").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".nav-item").forEach((b) => b.classList.remove("active"));
-        document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
-        btn.classList.add("active");
-        document.getElementById(`page-${btn.dataset.page}`).classList.add("active");
-      });
-    });
-
     document.getElementById("homeSearch").addEventListener("input", (e) => {
       renderChatsAndGroups(e.target.value);
     });
@@ -1645,6 +1662,7 @@
 
       applyAppearance();
       syncEventsPublisherUI();
+      switchTab(state.activeTab || "home");
       renderChatsAndGroups(document.getElementById("homeSearch").value);
       renderEventsAndLeaderboard();
     }
